@@ -53,6 +53,7 @@
       <root url="file:///usr/local/go/src/sync" />
       <root url="file:///usr/local/go/src/crypto" />
       <root url="file:///usr/local/go/src/strconv" />
+      <root url="file:///usr/local/go/src/github.com" />
       <root url="file:///usr/local/go/src/unicode" />
       <root url="file:///usr/local/go/src/cmd" />
       <root url="file:///usr/local/go/src/math" />
@@ -87,7 +88,6 @@
       <root url="file:///usr/local/Cellar/go/1.7.5/libexec/src/image" />
       <root url="file:///usr/local/Cellar/go/1.7.5/libexec/src/compress" />
       <root url="file:///usr/local/Cellar/go/1.7.5/libexec/src/io" />
-      <root url="file:///usr/local/Cellar/go/1.7.5/bin" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
@@ -143,6 +143,7 @@
       <root url="file:///usr/local/go/src/sync" />
       <root url="file:///usr/local/go/src/crypto" />
       <root url="file:///usr/local/go/src/strconv" />
+      <root url="file:///usr/local/go/src/github.com" />
       <root url="file:///usr/local/go/src/unicode" />
       <root url="file:///usr/local/go/src/cmd" />
       <root url="file:///usr/local/go/src/math" />
@@ -177,7 +178,9 @@
       <root url="file:///usr/local/Cellar/go/1.7.5/libexec/src/image" />
       <root url="file:///usr/local/Cellar/go/1.7.5/libexec/src/compress" />
       <root url="file:///usr/local/Cellar/go/1.7.5/libexec/src/io" />
-      <root url="file:///usr/local/Cellar/go/1.7.5/bin" />
     </SOURCES>
+    <excluded>
+      <root url="file://$PROJECT_DIR$" />
+    </excluded>
   </library>
 </component>

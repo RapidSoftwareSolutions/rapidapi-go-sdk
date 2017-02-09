@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"../../RapidAPISDK"
+	"../RapidAPISDK"
 )
 
 func handleResponse(response map[string]interface{}){

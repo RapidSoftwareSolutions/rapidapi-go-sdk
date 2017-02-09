@@ -5,6 +5,6 @@
     <content url="file://$MODULE_DIR$" />
     <orderEntry type="jdk" jdkName="Go 1.7.5" jdkType="Go SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="GOPATH &lt;rapidapi_sdk&gt;" level="project" />
+    <orderEntry type="library" name="GOPATH &lt;RapidAPISDK&gt;" level="project" />
   </component>
 </module>

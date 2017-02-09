@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"./RapidAPISDK"
+	"../../RapidAPISDK"
 )
 
 func handleResponse(response map[string]interface{}){
@@ -28,7 +28,7 @@ func TestPublicPack(rapidApi RapidAPISDK.RapidAPI) {
 func TestPackWithImage(rapidApi RapidAPISDK.RapidAPI) {
 	params :=  map[string]RapidAPISDK.Param{
 		"subscriptionKey": {"data", "57e9164516844d99ae455a9953aca0c2"},
-		"image" : {"file","src/cute_dog.jpg" },
+		"image" : {"file","test/cute_dog.jpg" },
 		"details": {"data", ""},
 		"visualFeatures": {"data",""},
 	}
@@ -38,7 +38,7 @@ func TestPackWithImage(rapidApi RapidAPISDK.RapidAPI) {
 
 func TestPackWithWriter(rapidApi RapidAPISDK.RapidAPI) {
 
-	file, err := os.Open("src/cute_dog.jpg")
+	file, err := os.Open("test/cute_dog.jpg")
 	if err != nil {
 		panic(err)
 	}

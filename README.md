@@ -91,6 +91,24 @@ params := map[string]RapidAPISDK.Param{
 defer file.Close()
 ```
 
+## Webhook events
+You can listen to webhook events like so:
+
+```go
+	rapidApi := RapidAPISDK.RapidAPI{"PROJECT", "KEY"}
+	params := map[string]string{
+		"token": "slash_command_token",
+		"command": "/command"}
+	callbacks := make(map[string]func(msg interface{}))
+	callbacks["onJoin"] = func (msg interface{}) { fmt.Println("Joined!") }
+	callbacks["onMessage"] = func (msg interface{}) {
+		fmt.Println("Got message!")
+		fmt.Println(msg)
+	}
+	callbacks["onClose"] = func (msg interface{}) { fmt.Println("Closed!") }
+	rapidApi.Listen("Slack", "slashCommand", params, callbacks)
+```
+
 ##Issues:
 
 As this is a pre-release version of the SDK, you may expirience bugs. Please report them in the issues section to let us know. You may use the intercom chat on rapidapi.com for support at any time.

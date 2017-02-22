@@ -8,10 +8,13 @@ import (
 	"io/ioutil"
 	"encoding/json"
 	"mime/multipart"
+	"./gorilla/websocket"
 )
 
 // base URL for block calls
 const baseUrl string = "https://rapidapi.io/connect"
+const callbackBaseUrl string = "https://webhooks.rapidapi.com"
+const websocketBaseUrl string = "wss://webhooks.rapidapi.com"
 
 /*
  * Create rapidAPI connect type
@@ -52,6 +55,75 @@ func (rapidApi RapidAPI) Call(pack, block string, params map[string]Param) map[s
 
 	return renderResponse(bodyRes)
 
+}
+
+func getTokenUrl(user_id string) string {
+	return callbackBaseUrl + "/api/get_token?user_id=" + user_id
+}
+
+func socketUrl(token string) string {
+	return websocketBaseUrl + "/socket/websocket?token=" + token
+}
+
+func (rapidApi RapidAPI) Listen(pack string, event string, params map[string]string, callbacks map[string]func(msg interface{})) {
+	user_id := pack + "." + event + "_" + rapidApi.Project + ":" + rapidApi.Key
+	url := getTokenUrl(user_id)
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("Content-Type", "application/json")
+	req.SetBasicAuth(rapidApi.Project, rapidApi.Key)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	bodyRes, _ := ioutil.ReadAll(resp.Body)
+	var value interface{}
+	if (json.Unmarshal(bodyRes, &value) != nil) {
+		panic(string(bodyRes))
+	}
+	mapRes := value.(map[string]interface{})
+	token := mapRes["token"].(string)
+	sock_url := socketUrl(token)
+	c, _, err := websocket.DefaultDialer.Dial(sock_url, nil)
+	if err != nil {
+		panic(err)
+	}
+	defer c.Close()
+	done := make(chan struct{})
+	defer close(done)
+
+	connect := make(map[string]interface{})
+	connect["topic"] = "users_socket:"+user_id
+	connect["event"] = "phx_join"
+	connect["ref"] = "1"
+	connect["payload"] = params
+
+	jsoned, _ := json.Marshal(connect)
+	if err := c.WriteMessage(websocket.TextMessage, []byte(jsoned)); err != nil {
+	 	panic(err)
+	}
+
+	var payload map[string]interface{}
+	for {
+		_, message, err := c.ReadMessage();
+		if err != nil {
+			callbacks["onClose"](err)
+			return
+		}
+		if err := json.Unmarshal(message, &payload); err != nil {
+			callbacks["onClose"](err)
+			panic(err)
+		}
+		msg := payload["payload"].(map[string]interface{})
+		if payload["event"].(string) == "joined" {
+			callbacks["onJoin"](true)
+		} else if payload["event"].(string) == "new_msg" && msg["token"] == token {
+			callbacks["onMessage"](msg["body"])
+		}
+	}
+	callbacks["onClose"](true)
+	return
 }
 
 /*

@@ -108,21 +108,31 @@ func (rapidApi RapidAPI) Listen(pack string, event string, params map[string]str
 	for {
 		_, message, err := c.ReadMessage();
 		if err != nil {
-			callbacks["onClose"](err)
+			if (callbacks["onClose"] != nil) {
+				callbacks["onClose"](err)
+			}
 			return
 		}
 		if err := json.Unmarshal(message, &payload); err != nil {
-			callbacks["onClose"](err)
+			if (callbacks["onClose"] != nil) {
+				callbacks["onClose"](err)
+			}
 			panic(err)
 		}
 		msg := payload["payload"].(map[string]interface{})
 		if payload["event"].(string) == "joined" {
-			callbacks["onJoin"](true)
+			if (callbacks["onJoin"] != nil) {
+				callbacks["onJoin"](true)
+			}
 		} else if payload["event"].(string) == "new_msg" && msg["token"] == token {
-			callbacks["onMessage"](msg["body"])
+			if (callbacks["onMessage"] != nil) {
+				callbacks["onMessage"](msg["body"])
+			}
 		}
 	}
-	callbacks["onClose"](true)
+	if (callbacks["onClose"] != nil) {
+		callbacks["onClose"](true)
+	}
 	return
 }
 

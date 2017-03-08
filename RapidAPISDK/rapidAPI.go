@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"encoding/json"
 	"mime/multipart"
-	"./gorilla/websocket"
+	"gorilla/websocket"
 )
 
 // base URL for block calls

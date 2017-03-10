@@ -13,8 +13,8 @@ import (
 
 // base URL for block calls
 const baseUrl string = "https://rapidapi.io/connect"
-const callbackBaseUrl string = "https://webhooks.rapidapi.xyz"
-const websocketBaseUrl string = "wss://webhooks.rapidapi.xyz"
+const callbackBaseUrl string = "https://webhooks.rapidapi.com"
+const websocketBaseUrl string = "wss://webhooks.rapidapi.com"
 
 /*
  * Create rapidAPI connect type

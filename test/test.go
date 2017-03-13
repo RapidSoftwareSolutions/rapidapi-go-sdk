@@ -67,24 +67,6 @@ func TestPackWithURL(rapidApi RapidAPISDK.RapidAPI) {
 	handleResponse(response)
 }
 
-func TestWebhookEvents(rapidApi RapidAPISDK.RapidAPI) {
-	params := map[string]string{
-		"token":  "dxJoEmQ93TypcotygRB0eok2",
-		"command":  "/kaki3",
-	}
-	callbacks := make(map[string]func(msg interface{}))
-	callbacks["onMessage"] = func(msg interface{}) {
-		fmt.Println(msg)
-	}
-	callbacks["onJoin"] = func(msg interface{}) {
-		fmt.Println("Joined!")
-	}
-	callbacks["onError"] = func(msg interface{}) {
-		fmt.Println("Error")
-	}
-	rapidApi.Listen("Slack", "slashCommand", params, callbacks)
-}
-
 func main() {
 	rapidApi := RapidAPISDK.RapidAPI{"withoutImage", "72352b8b-9384-4a9a-abb1-195d5e234418"}
 
@@ -92,8 +74,4 @@ func main() {
 	TestPackWithImage(rapidApi)
 	TestPackWithURL(rapidApi)
 	TestPackWithWriter(rapidApi)
-/*
-	webhooksRapid := RapidAPISDK.RapidAPI{"testa", "a3787239-bb1e-4fa4-85c3-a423fa6af51f"}
-	TestWebhookEvents(webhooksRapid)
-*/
 }

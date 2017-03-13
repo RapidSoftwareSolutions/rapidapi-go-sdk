@@ -124,6 +124,10 @@ func (rapidApi RapidAPI) Listen(pack string, event string, params map[string]str
 			if (callbacks["onJoin"] != nil) {
 				callbacks["onJoin"](true)
 			}
+		} else if payload["token"] != token {
+			if (callbacks["onError"] != nil) {
+				callbacks["onError"](msg["body"])
+			}
 		} else if payload["event"].(string) == "new_msg" && msg["token"] == token {
 			if (callbacks["onMessage"] != nil) {
 				callbacks["onMessage"](msg["body"])

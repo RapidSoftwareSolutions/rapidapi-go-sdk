@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"mime/multipart"
 	"github.com/gorilla/websocket"
+	"time"
 )
 
 // base URL for block calls
@@ -65,8 +66,7 @@ func socketUrl(token string) string {
 	return websocketBaseUrl + "/socket/websocket?token=" + token
 }
 
-func (rapidApi RapidAPI) Listen(pack string, event string, params map[string]string, callbacks map[string]func(msg interface{})) {
-	user_id := pack + "." + event + "_" + rapidApi.Project + ":" + rapidApi.Key
+func getToken(user_id string, rapidApi RapidAPI) string {
 	url := getTokenUrl(user_id)
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("Content-Type", "application/json")
@@ -83,18 +83,25 @@ func (rapidApi RapidAPI) Listen(pack string, event string, params map[string]str
 		panic(string(bodyRes))
 	}
 	mapRes := value.(map[string]interface{})
-	token := mapRes["token"].(string)
+	return mapRes["token"].(string)
+}
+
+func (rapidApi RapidAPI) Listen(pack string, event string, params map[string]string,
+	on_join chan bool, on_message chan interface{},
+	on_error chan interface{}, on_close chan interface{}) {
+	user_id := pack + "." + event + "_" + rapidApi.Project + ":" + rapidApi.Key
+	token := getToken(user_id, rapidApi)
 	sock_url := socketUrl(token)
 	c, _, err := websocket.DefaultDialer.Dial(sock_url, nil)
 	if err != nil {
 		panic(err)
 	}
 	defer c.Close()
-	done := make(chan struct{})
-	defer close(done)
+	toclose := make(chan struct{})
+	defer close(toclose)
 
 	connect := make(map[string]interface{})
-	connect["topic"] = "users_socket:"+user_id
+	connect["topic"] = "users_socket:"+token
 	connect["event"] = "phx_join"
 	connect["ref"] = "1"
 	connect["payload"] = params
@@ -105,39 +112,43 @@ func (rapidApi RapidAPI) Listen(pack string, event string, params map[string]str
 	}
 
 	var payload map[string]interface{}
+	go func(conn *websocket.Conn) {
+		heartbeat := map[string]interface{} {
+			"topic": "phoenix",
+			"event": "heartbeat",
+			"ref": "1",
+			"payload": make(map[string]string),
+		}
+		jsoned_heartbeat, _ := json.Marshal(heartbeat)
+		for range time.Tick(30*time.Second) {
+			if err := conn.WriteMessage(websocket.TextMessage, []byte(jsoned_heartbeat)); err != nil {
+				panic(err)
+			}
+		}
+	}(c)
+
 	for {
 		_, message, err := c.ReadMessage();
 		if err != nil {
-			if (callbacks["onClose"] != nil) {
-				callbacks["onClose"](err)
-			}
+			on_error <- true
 			return
 		}
 		if err := json.Unmarshal(message, &payload); err != nil {
-			if (callbacks["onClose"] != nil) {
-				callbacks["onClose"](err)
-			}
+			on_error <- err
 			panic(err)
 		}
 		msg := payload["payload"].(map[string]interface{})
 		if payload["event"].(string) == "joined" {
-			if (callbacks["onJoin"] != nil) {
-				callbacks["onJoin"](true)
-			}
-		} else if payload["event"].(string) == "new_msg" && payload["token"] != token {
-			if (callbacks["onError"] != nil) {
-				callbacks["onError"](msg["body"])
-			}
-		} else if payload["event"].(string) == "new_msg" && msg["token"] == token {
-			if (callbacks["onMessage"] != nil) {
-				callbacks["onMessage"](msg["body"])
-			}
+			on_join <- true
+		} else if payload["event"].(string) == "new_msg" && msg["token"] == nil {
+			on_error <- msg["body"]
+		} else if payload["event"].(string) == "new_msg" {
+			on_message <- msg["body"]
 		}
 	}
-	if (callbacks["onClose"] != nil) {
-		callbacks["onClose"](true)
-	}
+	on_close <- true
 	return
+
 }
 
 /*

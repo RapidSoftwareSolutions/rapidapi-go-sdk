@@ -67,8 +67,45 @@ func TestPackWithURL(rapidApi RapidAPISDK.RapidAPI) {
 	handleResponse(response)
 }
 
+func TestListen(rapidApi RapidAPISDK.RapidAPI) {
+	params := map[string]string{
+		"command": "/send_test",
+		"token": "ydt3vFyVEoW51ZFCC2i5QKab",
+	}
+
+	params2 := map[string]string{
+		"command": "/different_test",
+		"token": "et7cSI58sSuHnSeSa4DQP8hn",
+	}
+
+	on_join := make(chan bool)
+	on_message := make(chan interface{})
+	on_error := make(chan interface{})
+	on_close := make(chan interface{})
+	
+	go rapidApi.Listen("Slack", "slashCommand", params, on_join, on_message, on_error, on_close)
+	go rapidApi.Listen("Slack", "slashCommand", params2, on_join, on_message, on_error, on_close)
+
+	for {
+		select {
+		case <-on_join:
+			fmt.Println("Joined")
+		case message := <-on_message:
+			fmt.Println(message)
+		case <-on_close:
+			fmt.Println("closed")
+		case err := <-on_error:
+			fmt.Println("error")
+			fmt.Println(err)
+		}
+	}
+}
+
 func main() {
-	rapidApi := RapidAPISDK.RapidAPI{"withoutImage", "72352b8b-9384-4a9a-abb1-195d5e234418"}
+	// rapidApi := RapidAPISDK.RapidAPI{"withoutImage", "72352b8b-9384-4a9a-abb1-195d5e234418"}
+
+	rapidApi := RapidAPISDK.RapidAPI{"Dashboard", "0b7f82c1-cf1d-4e02-af9a-de129afe54b2"}
+	TestListen(rapidApi, done)
 
 	TestPublicPack(rapidApi)
 	TestPackWithImage(rapidApi)
